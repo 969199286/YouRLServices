@@ -1,0 +1,1 @@
+TRUNCATE TABLE long_to_short;
