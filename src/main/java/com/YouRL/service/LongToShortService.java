@@ -1,6 +1,6 @@
 package com.YouRL.service;
 
-import com.YouRL.Entity.LongToShort;
+import com.YouRL.entity.LongToShort;
 
 public interface LongToShortService {
     public String generateShortenUrl();

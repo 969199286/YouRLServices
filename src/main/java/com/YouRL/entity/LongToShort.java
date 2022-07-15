@@ -1,4 +1,4 @@
-package com.YouRL.Entity;
+package com.YouRL.entity;
 
 
 import javax.persistence.*;

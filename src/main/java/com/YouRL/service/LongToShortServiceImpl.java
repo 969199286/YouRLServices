@@ -1,6 +1,6 @@
 package com.YouRL.service;
 
-import com.YouRL.Entity.LongToShort;
+import com.YouRL.entity.LongToShort;
 import com.YouRL.repository.LongToShortRepository;
 import com.YouRL.shortenurl.UrlShortener;
 import org.springframework.beans.factory.annotation.Autowired;
