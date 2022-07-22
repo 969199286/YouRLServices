@@ -45,8 +45,8 @@ public class LongToShortServiceImpl implements LongToShortService {
             LOGGER.info("get from cache");
             return shortUrl;
         }
-        if (validateDB(longUrl)) {
-            shortUrl = longToShortRepository.getByLongUrl(longUrl).getShortUrl();
+        shortUrl = longToShortRepository.getByLongUrl(longUrl).getShortUrl();
+        if (shortUrl != null) {
             LOGGER.info("get from DB");
             redisService.setLTSandSTL(longUrl, shortUrl, 20);
             LOGGER.info(("DB: save to cache"));
@@ -73,11 +73,6 @@ public class LongToShortServiceImpl implements LongToShortService {
         ShortToLong shortToLong = new ShortToLong(shortUrl, longUrl);
         longToShortRepository.save(longToShort);
         shortToLongRepository.save(shortToLong);
-    }
-
-    @Override
-    public Boolean validateDB(String longUrl) {
-        return (longToShortRepository.getByLongUrl(longUrl) != null);
     }
 
     private String fetchShortUrlFromCache(String longUrl) {

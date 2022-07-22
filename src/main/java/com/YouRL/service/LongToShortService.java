@@ -6,5 +6,5 @@ public interface LongToShortService {
     public String generateShortenUrl(String longUrl);
     public LongToShort getShortenUrlByLongUrl(String longUrl);
     public void saveUrl(String longUrl, String shortUrl);
-    public Boolean validateDB(String longUrl);
+
 }
