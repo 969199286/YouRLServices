@@ -9,7 +9,7 @@ public class UrlShortener {
         return RandomGenerator.generate(DEFAULT_LENGTH);
     }
 
-    private String generate(int id) {
+    public String generate(long id) {
         return Base62Generator.generate(id, DEFAULT_LENGTH);
     }
 

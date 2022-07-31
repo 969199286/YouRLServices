@@ -1,16 +1,15 @@
 package com.YouRL.service;
 
-import com.YouRL.controller.ShortToLongController;
+import com.YouRL.entity.LongToSequenceId;
 import com.YouRL.entity.LongToShort;
-import com.YouRL.entity.ShortToLong;
+import com.YouRL.repository.LongToSequenceIdRepository;
 import com.YouRL.repository.LongToShortRepository;
-import com.YouRL.repository.ShortToLongRepository;
 import com.YouRL.shortenurl.UrlShortener;
 import com.YouRL.util.UrlUtils;
+import com.YouRL.util.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -21,38 +20,39 @@ public class LongToShortServiceImpl implements LongToShortService {
     private static final Logger LOGGER = LoggerFactory.getLogger(LongToShortServiceImpl.class);
     private final UrlShortener urlShortener;
     private final LongToShortRepository longToShortRepository;
-    private final ShortToLongRepository shortToLongRepository;
+    private final LongToSequenceIdRepository longToSequenceIdRepository;
     private final RedisService redisService;
 
     @Autowired
-    public LongToShortServiceImpl(UrlShortener urlShortener, LongToShortRepository longToShortRepository, ShortToLongRepository shortToLongRepository, RedisService redisService) {
+    public LongToShortServiceImpl(UrlShortener urlShortener, LongToShortRepository longToShortRepository, LongToSequenceIdRepository longToSequenceIdRepository, RedisService redisService) {
         this.urlShortener = urlShortener;
         this.longToShortRepository = longToShortRepository;
-        this.shortToLongRepository = shortToLongRepository;
+        this.longToSequenceIdRepository = longToSequenceIdRepository;
         this.redisService = redisService;
     }
 
 
     @Override
     @Transactional
-    public String generateShortenUrl(String longUrl) {
+    public String generateShortenUrl(String longUrl) throws ValidationException {
         if (!UrlUtils.isValidLongUrl(longUrl)) {
-            LOGGER.error("Invalid long URL");
-            return null;
+            throw new ValidationException(longUrl);
         }
         String shortUrl = fetchShortUrlFromCache(longUrl);
         if (shortUrl != null) {
             LOGGER.info("get from cache");
             return shortUrl;
         }
-        shortUrl = longToShortRepository.getByLongUrl(longUrl).getShortUrl();
-        if (shortUrl != null) {
+        LongToShort LTS = longToShortRepository.getByLongUrl(longUrl);
+        if (LTS != null) {
+            shortUrl = LTS.getShortUrl();
             LOGGER.info("get from DB");
             redisService.setLTSandSTL(longUrl, shortUrl, 20);
             LOGGER.info(("DB: save to cache"));
             return shortUrl;
         }
-        shortUrl = urlShortener.generate();
+        long sequence_id = generateSequenceId(longUrl);
+        shortUrl = urlShortener.generate(sequence_id);
 
         redisService.setLTSandSTL(longUrl, shortUrl, 20);
         LOGGER.info("save to cache");
@@ -70,11 +70,27 @@ public class LongToShortServiceImpl implements LongToShortService {
     @Transactional
     public void saveUrl(String longUrl, String shortUrl) {
         LongToShort longToShort = new LongToShort(longUrl, shortUrl);
-        ShortToLong shortToLong = new ShortToLong(shortUrl, longUrl);
         longToShortRepository.save(longToShort);
-        shortToLongRepository.save(shortToLong);
     }
 
+    @Override
+    public String getLongUrlByShortUrl(String shortUrl) {
+        if (longToShortRepository.getByShortUrl(shortUrl) != null) {
+            return longToShortRepository.getByShortUrl(shortUrl).getLongUrl();
+        }
+        return null;
+    }
+
+    private long generateSequenceId(String longUrl) {
+        LongToSequenceId lastRecord = longToSequenceIdRepository.findTopByOrderByIdDesc();
+        long sequence_id = 0;
+        if (lastRecord != null) {
+            sequence_id = lastRecord.getSequenceId() + 1;
+        }
+        LongToSequenceId longToSequenceId = new LongToSequenceId(sequence_id, longUrl);
+        longToSequenceIdRepository.save(longToSequenceId);
+        return sequence_id;
+    }
     private String fetchShortUrlFromCache(String longUrl) {
         String shortUrl = fetchValueByKey(longUrl);
         return shortUrl;
@@ -85,4 +101,5 @@ public class LongToShortServiceImpl implements LongToShortService {
         redisService.expire(key, 20);
         return value;
     }
+
 }
