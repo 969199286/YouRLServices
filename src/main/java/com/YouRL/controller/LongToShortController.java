@@ -2,6 +2,7 @@ package com.YouRL.controller;
 
 
 import com.YouRL.service.LongToShortService;
+import com.YouRL.util.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class LongToShortController {
     }
 
     @PostMapping("/long2short")
-    public String addLongToShort(@RequestBody String longUrl) {
+    public String addLongToShort(@RequestBody String longUrl) throws ValidationException {
         return longToShortService.generateShortenUrl(longUrl);
     }
 
