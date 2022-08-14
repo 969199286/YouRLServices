@@ -19,7 +19,7 @@ public class LongToShortControllerAdvice {
         log.info("Handle ValidationException");
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("created_at", new Date().toString());
-        body.put("message", "Invalid Input Long Url " + validationException.getMessage());
+        body.put("message", "Invalid Input Long Url: " + validationException.getMessage());
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 }

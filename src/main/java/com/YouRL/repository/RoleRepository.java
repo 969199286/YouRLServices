@@ -1,2 +1,13 @@
-package com.YouRL.repository;public class RoleRepository {
+package com.YouRL.repository;
+
+import com.YouRL.entity.Role;
+import com.YouRL.entity.RoleName;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface RoleRepository extends JpaRepository<Role, Long> {
+    Optional<Role> findByName(RoleName name);
 }

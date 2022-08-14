@@ -1,31 +1,45 @@
-package com.YouRL.service;
+package com.YouRL.security.service;
 
 import com.YouRL.entity.User;
+import com.YouRL.enums.AuthProvider;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class UserDetailsImpl implements UserDetails {
+@Setter
+@Getter
+public class UserDetailsImpl implements UserDetails, OidcUser {
     private static final long serialVersionUID = 1L;
     private Long id;
-    private String username;
+    private String accountName;
     private String email;
     @JsonIgnore
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
-    public UserDetailsImpl(Long id, String username, String email, String password,
-                           Collection<? extends GrantedAuthority> authorities) {
+    private AuthProvider authProvider;
+
+    private OidcUser oidcUser;
+    public UserDetailsImpl(Long id, String accountName, String email, String password,
+                           Collection<? extends GrantedAuthority> authorities, AuthProvider authProvider) {
         this.id = id;
-        this.username = username;
+        this.accountName = accountName;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
+        this.authProvider = authProvider;
     }
     public static UserDetailsImpl build(User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
@@ -36,8 +50,21 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),
-                authorities);
+                authorities,
+                user.getProvider());
     }
+
+    public static UserDetailsImpl create(User user, OidcUser oidcUser) {
+        UserDetailsImpl userDetails = UserDetailsImpl.build(user);
+        userDetails.setOidcUser(oidcUser);
+        return userDetails;
+    }
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return getClaims();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
@@ -54,7 +81,7 @@ public class UserDetailsImpl implements UserDetails {
     }
     @Override
     public String getUsername() {
-        return username;
+        return accountName;
     }
     @Override
     public boolean isAccountNonExpired() {
@@ -80,5 +107,25 @@ public class UserDetailsImpl implements UserDetails {
             return false;
         UserDetailsImpl user = (UserDetailsImpl) o;
         return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public Map<String, Object> getClaims() {
+        return oidcUser.getClaims();
+    }
+
+    @Override
+    public OidcUserInfo getUserInfo() {
+        return oidcUser.getUserInfo();
+    }
+
+    @Override
+    public OidcIdToken getIdToken() {
+        return oidcUser.getIdToken();
+    }
+
+    @Override
+    public String getName() {
+        return String.valueOf(id);
     }
 }
