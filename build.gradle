@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.YouRL'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+sourceCompatibility = "14"
 
 configurations {
 	compileOnly {
@@ -41,9 +41,15 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-oauth2-client:5.7.2'
 	implementation 'org.springframework.security:spring-security-oauth2-resource-server:5.7.2'
 	implementation 'org.springframework.security:spring-security-oauth2-jose:5.7.2'
+	// google guava
+	implementation 'com.google.guava:guava:31.0.1-jre'
+
+	// apache commons
+	implementation 'org.apache.commons:commons-lang3:3.12.0'
 
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+targetCompatibility = JavaVersion.VERSION_14
