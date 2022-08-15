@@ -1,4 +1,4 @@
-package com.YouRL.service;
+package com.YouRL.security.service;
 
 import com.YouRL.entity.User;
 import com.YouRL.repository.UserRepository;

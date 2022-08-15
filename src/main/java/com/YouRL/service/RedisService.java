@@ -1,9 +1,11 @@
 package com.YouRL.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -11,7 +13,7 @@ public class RedisService {
     private final RedisTemplate<String, Object> template;
 
     @Autowired
-    public RedisService(RedisTemplate<String, Object> template) {
+    public RedisService(@Qualifier("template") RedisTemplate<String, Object> template) {
         this.template = template;
     }
 

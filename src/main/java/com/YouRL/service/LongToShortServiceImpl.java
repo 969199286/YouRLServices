@@ -22,13 +22,15 @@ public class LongToShortServiceImpl implements LongToShortService {
     private final LongToShortRepository longToShortRepository;
     private final LongToSequenceIdRepository longToSequenceIdRepository;
     private final RedisService redisService;
+    private final SequenceIdService sequenceIdService;
 
     @Autowired
-    public LongToShortServiceImpl(UrlShortener urlShortener, LongToShortRepository longToShortRepository, LongToSequenceIdRepository longToSequenceIdRepository, RedisService redisService) {
+    public LongToShortServiceImpl(UrlShortener urlShortener, LongToShortRepository longToShortRepository, LongToSequenceIdRepository longToSequenceIdRepository, RedisService redisService, SequenceIdService sequenceIdService) {
         this.urlShortener = urlShortener;
         this.longToShortRepository = longToShortRepository;
         this.longToSequenceIdRepository = longToSequenceIdRepository;
         this.redisService = redisService;
+        this.sequenceIdService = sequenceIdService;
     }
 
 
@@ -51,7 +53,7 @@ public class LongToShortServiceImpl implements LongToShortService {
             LOGGER.info(("DB: save to cache"));
             return shortUrl;
         }
-        long sequence_id = generateSequenceId(longUrl);
+        long sequence_id = sequenceIdService.getNextSequenceIdByAtomic();
         shortUrl = urlShortener.generate(sequence_id);
 
         redisService.setLTSandSTL(longUrl, shortUrl, 20);
